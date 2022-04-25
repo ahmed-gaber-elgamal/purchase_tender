@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_purchase_tender,purchase.tender,model_purchase_tender,,1,1,1,1
+access_purchase_tender_price_analysis,purchase.tender.price.analysis,model_purchase_tender_price_analysis,,1,1,1,1
+access_purchase_tender_manpower_analysis,purchase.tender.manpower.analysis,model_purchase_tender_manpower_analysis,,1,1,1,1
+access_purchase_tender_vehicle_analysis,purchase.tender.vehicle.analysis,model_purchase_tender_vehicle_analysis,,1,1,1,1
+access_purchase_tender_material_info,purchase.tender.material.info,model_purchase_tender_material_info,,1,1,1,1
+access_purchase_tender_equipment_analysis,purchase.tender.equipment.analysis,model_purchase_tender_equipment_analysis,,1,1,1,1
+access_purchase_tender_initial_meeting,purchase.tender.initial.meeting,model_purchase_tender_initial_meeting,,1,1,1,1
+access_purchase_tender_record,purchase.tender.record,model_purchase_tender_record,,1,1,1,1
+access_bid_type,bid.type,model_bid_type,,1,1,1,1
