@@ -4,7 +4,7 @@
             <field name="name">purchase.tender.view.tree</field>
             <field name="model">purchase.tender</field>
             <field name="arch" type="xml">
-                <tree>
+                <tree decoration-info="state == 'participated'" decoration-primary="state == 'interested'" decoration-success="state == 'winner'" decoration-danger="state == 'cancelled'" decoration-warning="state == 'postponed'" decoration-muted="state == 'closed'">
                     <field name="name"/>
                     <field name="tender_no"/>
                     <field name="tender_name"/>
@@ -42,6 +42,7 @@
                                 <field name="tender_name"/>
                                 <field name="issue_date"/>
                                 <field name="closing_date"/>
+                                <field name="new_closing_date" attrs="{'invisible': [('state', '!=', 'postponed')]}"/>
                                 <field name="initial_meeting_date"/>
                                 <field name="bid_type"/>
                                 <field name="current_co"/>
@@ -68,6 +69,7 @@
                                         <field name="contact"/>
                                         <field name="price"/>
                                         <field name="rate"/>
+                                        <field name="state"/>
                                     </tree>
                                 </field>
                             </page>
@@ -113,7 +115,7 @@
                                         <field name="sequence" widget="handle"/>
                                         <field name="name"/>
                                         <field name="date"/>
-                                        <field name="file"/>
+                                        <field name="file" widget="binary" filename="filename"/>
                                     </tree>
                                 </field>
                             </page>

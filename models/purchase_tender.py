@@ -10,6 +10,13 @@ class BidType(models.Model):
     name = fields.Char()
 
 
+class TenderFollower(models.Model):
+    _name = 'purchase.tender.follower'
+    _description = 'Tender Follower'
+
+    followers = fields.Many2many('res.users')
+
+
 class PurchaseTender(models.Model):
     _name = 'purchase.tender'
     _inherit = ['mail.thread', 'mail.activity.mixin']
@@ -21,6 +28,7 @@ class PurchaseTender(models.Model):
     tender_name = fields.Char()
     issue_date = fields.Date()
     closing_date = fields.Date()
+    new_closing_date = fields.Date()
     initial_meeting_date = fields.Date()
     bid_type = fields.Many2one('bid.type', string='Bidding Type')
     current_co = fields.Many2one('res.partner')
@@ -34,13 +42,15 @@ class PurchaseTender(models.Model):
     care_rank = fields.Integer()
     to_win = fields.Float(compute='compute_to_win', store=True)
     state = fields.Selection(selection=[
+        ('new', 'New'),
         ('participated', 'Participated'),
         ('interested', 'Interested'),
         ('excepted', 'Excepted'),
+        ('winner', 'Winner'),
         ('postponed', 'Postponed'),
         ('closed', 'Closed'),
         ('cancelled', 'Cancelled'),
-    ])
+    ], default='new')
     image = fields.Binary(related='organization.image_1920', store=True)
 
     price_analysis_ids = fields.One2many('purchase.tender.price.analysis', 'tender_id')
@@ -49,6 +59,68 @@ class PurchaseTender(models.Model):
     material_info_ids = fields.One2many('purchase.tender.material.info', 'tender_id')
     equipment_analysis_ids = fields.One2many('purchase.tender.equipment.analysis', 'tender_id')
     initial_meeting_ids = fields.One2many('purchase.tender.initial.meeting', 'tender_id')
+
+    @api.onchange('period')
+    def check_period(self):
+        if self.period:
+            if self.period <= 0:
+                self.period = 1
+
+    @api.onchange('manpower')
+    def check_manpower(self):
+        if self.manpower:
+            if self.manpower <= 0:
+                self.manpower = 1
+
+    @api.model
+    def create(self, vals):
+        res = super(PurchaseTender, self).create(vals)
+        followers = self.env['purchase.tender.follower'].search([]).mapped('followers')
+        if followers:
+            for follower in followers:
+                res.sudo().activity_schedule(
+                    'purchase_tender.mail_act_tender_create',
+                    summary='Purchase Tender',
+                    note='New tender has been created',
+                    user_id=follower.id)
+                if res.closing_date or res.new_closing_date or res.initial_meeting_date:
+                    close_date_note = 'Tender closing date is {} \n'.format(res.closing_date) if res.closing_date else ''
+                    new_close_date_note = 'Tender new closing date is {} \n'.format(res.new_closing_date) if res.new_closing_date else ''
+                    initial_meeting_date_note = 'Tender initial meeting date is {}'.format(res.initial_meeting_date) if res.initial_meeting_date else ''
+                    note = close_date_note + new_close_date_note + initial_meeting_date_note
+                    res.sudo().activity_schedule(
+                        'purchase_tender.mail_act_tender_create',
+                        summary='Purchase Tender Date Update',
+                        note=note,
+                        user_id=follower.id)
+        return res
+
+    def write(self, values):
+        res = super(PurchaseTender, self).write(values)
+        followers = self.env['purchase.tender.follower'].search([]).mapped('followers')
+        if followers:
+            if values.get('state', False):
+                if values['state'] in ['postponed', 'cancelled']:
+                    for follower in followers:
+                        self.sudo().activity_schedule(
+                            'purchase_tender.mail_act_tender_create',
+                            summary='Purchase Tender',
+                            note='Tender status changed to {}'.format(values['state']),
+                            user_id=follower.id)
+            if values.get('closing_date', False) or values.get('new_closing_date', False) or values.get('initial_meeting_date', False):
+                for follower in followers:
+                    close_date_note = 'Tender closing date is {} \n'.format(values['closing_date']) if values.get('closing_date') else ''
+                    new_close_date_note = 'Tender new closing date is {} \n'.format(
+                        values['new_closing_date']) if values.get('new_closing_date') else ''
+                    initial_meeting_date_note = 'Tender initial meeting date is {}'.format(
+                        values['initial_meeting_date']) if values.get('initial_meeting_date') else ''
+                    note = close_date_note + new_close_date_note + initial_meeting_date_note
+                    self.sudo().activity_schedule(
+                        'purchase_tender.mail_act_tender_create',
+                        summary='Purchase Tender Date Update',
+                        note=note,
+                        user_id=follower.id)
+        return res
 
     @api.depends('price', 'winner_price')
     def compute_to_win(self):
@@ -66,9 +138,7 @@ class PurchaseTender(models.Model):
             rec.winner_rate_price = False
             if rec.price_analysis_ids:
                 winner = min([rec.price for rec in rec.price_analysis_ids])
-                print('winner>>', winner)
                 winners = rec.price_analysis_ids.filtered(lambda p: p.price == winner)
-                print('winners>>', winners)
                 rec.winner = winners[0].contact.id if winners else False
                 rec.winner_price = winners[0].price if winners else False
                 rec.winner_rate_price = winners[0].rate if winners else False
@@ -87,19 +157,38 @@ class TenderPriceAnalysis(models.Model):
 
     name = fields.Char(required=True, string="Description")
     sequence = fields.Integer(default=10)
-    rank = fields.Integer()
+    rank = fields.Integer(compute='compute_rank', store=True)
     contact = fields.Many2one('res.partner')
     price = fields.Float()
     rate = fields.Float(compute='compute_rate', store=True)
     tender_id = fields.Many2one('purchase.tender')
+    state = fields.Selection(selection=[
+        ('accepted', 'Accepted'),
+        ('excepted', 'Excepted'),
+    ], string='Status', default='accepted')
 
-    @api.depends('tender_id.manpower', 'price')
+    @api.depends('tender_id.manpower', 'tender_id.period', 'price')
     def compute_rate(self):
         for rec in self:
-            if rec.tender_id.manpower and rec.price:
-                rec.rate = rec.price / rec.tender_id.manpower
+            if rec.tender_id.manpower and rec.tender_id.period and rec.price:
+                rec.rate = rec.price / rec.tender_id.period / rec.tender_id.manpower
             else:
                 rec.rate = 0
+
+    @api.depends('price', 'tender_id.price_analysis_ids', 'state')
+    def compute_rank(self):
+        for rec in self:
+            rec.rank = 0
+            if rec.price and rec.tender_id.price_analysis_ids and rec.state != 'excepted':
+                prices = rec.tender_id.price_analysis_ids.filtered(lambda p: p.state != 'excepted').mapped('price')
+                prices.sort()
+                lst = [i for i, x in enumerate(prices) if x == rec.price]
+                if len(lst):
+                    rec.rank = lst[0] + 1
+                    rec.sequence = rec.rank
+            else:
+                rec.rank = 0
+                rec.sequence = 100
 
 
 class TenderManpowerAnalysis(models.Model):

@@ -7,4 +7,5 @@ access_purchase_tender_material_info,purchase.tender.material.info,model_purchas
 access_purchase_tender_equipment_analysis,purchase.tender.equipment.analysis,model_purchase_tender_equipment_analysis,,1,1,1,1
 access_purchase_tender_initial_meeting,purchase.tender.initial.meeting,model_purchase_tender_initial_meeting,,1,1,1,1
 access_purchase_tender_record,purchase.tender.record,model_purchase_tender_record,,1,1,1,1
+access_purchase_tender_follower,purchase.tender.follower,model_purchase_tender_follower,,1,1,1,1
 access_bid_type,bid.type,model_bid_type,,1,1,1,1

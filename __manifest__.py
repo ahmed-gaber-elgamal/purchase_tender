@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 {
     'name': "purchase Tender",
 
@@ -26,10 +24,16 @@
     # always loaded
     'data': [
         'security/ir.model.access.csv',
+        'data/tender.xml',
         'views/purchase_tender.xml',
         'views/bid_type.xml',
+        'views/tender_follower.xml',
         'views/tender_record.xml',
         'reports/tender_bid_result.xml',
         'reports/purchase_tender.xml',
+
+
     ],
 }
+# -*- coding: utf-8 -*-
+

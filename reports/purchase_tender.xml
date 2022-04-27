@@ -32,12 +32,12 @@
 			<t t-call="web.html_container">
 				<t t-call="web.external_layout">
 						<t t-set="sequence" t-value="0"/>
-						<div class="page">
+						<div class="page" style="font-family:Arial,Helvetica,sans-serif !important;">
 							<h4 style=";display:block !important; margin-bottom: 20px;">
                         		Date: <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d')"/>
                     		</h4>
 							<h4 style="display:block !important; margin-bottom: 20px;">
-                        		Purchase Tenders Reports
+                        		Tenders Report
                     		</h4>
 							<table class="table table-bordered">
 								<colgroup>
@@ -71,7 +71,11 @@
 										  <t t-set="sequence" t-value="sequence + 1"/>
 									    <tr>
 										  <td><t t-esc="sequence"/></td>
-										  <td><t t-esc="doc.name"/></td>
+										  <td>
+											  <t t-if="doc.tender_no"><t t-esc="doc.tender_no"/>/</t><t t-esc="doc.name"/>
+											  <t t-if="doc.organization">/ <t t-esc="doc.organization.name"/>
+										  </t>
+											</td>
 										  <td><t t-esc="doc.state"/></td>
 										  <td><t t-esc="doc.organization.name"/></td>
 										  <td><t t-esc="doc.issue_date"/></td>
