@@ -4,7 +4,7 @@
         <record model="ir.actions.report" id="action_tender_bid_result_report">
             <field name="name">Tender Bid Results</field>
             <field name="model">purchase.tender</field>
-            <field name="report_type">qweb-html</field>
+            <field name="report_type">qweb-pdf</field>
             <field name="report_name">purchase_tender.tender_bid_result_report</field>
             <field name="report_file">purchase_tender.tender_bid_result_report</field>
             <field name="binding_model_id" ref="model_purchase_tender"/>
@@ -66,7 +66,7 @@
 									  <td>Winner Total Price</td>
 									  <td><t t-esc="doc.winner_price"/></td>
 									  <td>Winner Rate</td>
-									  <td><t t-esc="doc.winner_rate_price"/></td>
+									  <td><t t-esc="round(doc.winner_rate_price, 3)"/></td>
 									</tr>
 								  </tbody>
 							</table>
@@ -85,8 +85,8 @@
 									<th class="text-center">Rank</th>
 									<th class="text-center">Company Name</th>
 									<th class="text-center">Price</th>
-									<th class="text-center">Rate</th>
-									<th class="text-center">Description</th>
+									<th class="text-center" style="border-right-color:blue;">Rate</th>
+									<th class="text-center" style="color:blue;border-color:blue;">Description</th>
 								</thead>
 								<tbody>
 									<tr t-foreach="doc.price_analysis_ids" t-as="line">
@@ -99,10 +99,10 @@
 											<td align="center">
 												<t t-esc="line.price"/>
 											</td>
-											<td align="center">
-												<t t-esc="line.rate"/>
+											<td align="center" style="border-right-color:blue;">
+												<t t-esc="round(line.rate, 3)"/>
 											</td>
-											<td align="center">
+											<td align="center" style="color:blue;border-color:blue;">
 												<t t-esc="line.name"/>
 											</td>
 									</tr>

@@ -33,10 +33,15 @@
 				<t t-call="web.external_layout">
 						<t t-set="sequence" t-value="0"/>
 						<div class="page" style="font-family:Arial,Helvetica,sans-serif !important;">
-							<h4 style=";display:block !important; margin-bottom: 20px;">
+							<br/>
+							<br/>
+							<br/>
+							<br/>
+							<br/>
+							<h4>
                         		Date: <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d')"/>
                     		</h4>
-							<h4 style="display:block !important; margin-bottom: 20px;">
+							<h4 style="display:block !important; margin-bottom: 20px;margin-top: 20px;">
                         		Tenders Report
                     		</h4>
 							<table class="table table-bordered">

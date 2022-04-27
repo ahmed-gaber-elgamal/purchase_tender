@@ -39,7 +39,7 @@ class PurchaseTender(models.Model):
     winner = fields.Many2one('res.partner', compute='compute_winner', store=True)
     winner_price = fields.Float(compute='compute_winner', store=True)
     winner_rate_price = fields.Float(compute='compute_winner', store=True)
-    care_rank = fields.Integer()
+    care_rank = fields.Integer(compute='compute_winner', store=True)
     to_win = fields.Float(compute='compute_to_win', store=True)
     state = fields.Selection(selection=[
         ('new', 'New'),
@@ -122,10 +122,10 @@ class PurchaseTender(models.Model):
                         user_id=follower.id)
         return res
 
-    @api.depends('price', 'winner_price')
+    @api.depends('price', 'winner_price', 'winner')
     def compute_to_win(self):
         for rec in self:
-            if rec.price and rec.winner_price:
+            if rec.price and rec.winner_price and rec.winner.id != self.env.company.sudo().partner_id.id:
                 rec.to_win = rec.price - rec.winner_price
             else:
                 rec.to_win = 0
@@ -136,12 +136,18 @@ class PurchaseTender(models.Model):
             rec.winner = False
             rec.winner_price = False
             rec.winner_rate_price = False
+            rec.care_rank = False
             if rec.price_analysis_ids:
                 winner = min([rec.price for rec in rec.price_analysis_ids])
                 winners = rec.price_analysis_ids.filtered(lambda p: p.price == winner)
                 rec.winner = winners[0].contact.id if winners else False
                 rec.winner_price = winners[0].price if winners else False
                 rec.winner_rate_price = winners[0].rate if winners else False
+            # get care rank
+                care_bid = rec.price_analysis_ids.filtered(lambda p: p.contact.id == self.env.company.sudo().partner_id.id)
+                if care_bid:
+                    rec.care_rank = care_bid[0].rank
+
 
     def name_get(self):
         result = []
@@ -155,7 +161,7 @@ class TenderPriceAnalysis(models.Model):
     _name = 'purchase.tender.price.analysis'
     _description = 'Purchase Tender Price Analysis'
 
-    name = fields.Char(required=True, string="Description")
+    name = fields.Char(string="Description")
     sequence = fields.Integer(default=10)
     rank = fields.Integer(compute='compute_rank', store=True)
     contact = fields.Many2one('res.partner')
