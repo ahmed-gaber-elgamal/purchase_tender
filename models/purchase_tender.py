@@ -23,8 +23,8 @@ class PurchaseTender(models.Model):
     _description = 'Purchase Tender'
 
     name = fields.Char(required=True)
-    organization = fields.Many2one('res.partner')
     tender_no = fields.Char()
+    organization = fields.Many2one('res.partner', required=True)
     tender_name = fields.Char()
     issue_date = fields.Date()
     closing_date = fields.Date()
@@ -59,6 +59,13 @@ class PurchaseTender(models.Model):
     material_info_ids = fields.One2many('purchase.tender.material.info', 'tender_id')
     equipment_analysis_ids = fields.One2many('purchase.tender.equipment.analysis', 'tender_id')
     initial_meeting_ids = fields.One2many('purchase.tender.initial.meeting', 'tender_id')
+    partner_id = fields.Many2one('res.partner')
+
+    @api.onchange('organization')
+    def onchange_organization(self):
+        for rec in self:
+            if rec.organization:
+                rec.partner_id = rec.organization.id
 
     @api.onchange('period')
     def check_period(self):

@@ -38,6 +38,7 @@
                         <group>
                             <group>
                                 <field name="organization"/>
+                                <field name="partner_id" invisible="1"/>
                                 <field name="tender_no"/>
                                 <field name="tender_name"/>
                                 <field name="issue_date"/>
