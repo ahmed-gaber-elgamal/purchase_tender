@@ -16,7 +16,7 @@
                     <field name="winner"/>
                     <field name="winner_price"/>
                     <field name="winner_rate_price" string="Rate"/>
-                    <field name="state"/>
+                    <field name="state" decoration-info="state == 'participated'" decoration-primary="state == 'interested'" decoration-success="state == 'winner'" decoration-danger="state == 'cancelled'" decoration-warning="state == 'postponed'" decoration-muted="state == 'closed'" widget="badge"/>
                 </tree>
             </field>
         </record>

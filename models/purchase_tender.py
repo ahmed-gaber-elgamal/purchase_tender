@@ -132,8 +132,9 @@ class PurchaseTender(models.Model):
     @api.depends('price', 'winner_price', 'winner')
     def compute_to_win(self):
         for rec in self:
-            if rec.price and rec.winner_price and rec.winner.id != self.env.company.sudo().partner_id.id:
-                rec.to_win = rec.price - rec.winner_price
+            care_bid = rec.price_analysis_ids.filtered(lambda p: p.contact.id == self.env.company.sudo().partner_id.id)
+            if care_bid and care_bid.price and rec.winner_price and rec.winner.id != self.env.company.sudo().partner_id.id:
+                rec.to_win = care_bid.price - rec.winner_price
             else:
                 rec.to_win = 0
 
